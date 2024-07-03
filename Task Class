@@ -1,0 +1,19 @@
+package com.example.helloworld;
+
+public class Task{
+    private int priority;
+    private String des;
+    private String name;
+    public Task(String n, String d, int p){
+        if(p <= 10 && p > 0)
+            priority = p;
+        des = d;
+        name = n;
+    }
+    public int getPriority(){
+        return priority;
+    }
+    public String toString(){
+        return name + " " + des + " " + priority + "\n";
+    }
+}
