@@ -1,0 +1,53 @@
+package com.example.helloworld;
+
+import java.util.LinkedList;
+import java.util.Scanner;
+
+public class HelloWorld {
+    public static void main(String[] args){
+        Scanner scan = new Scanner(System.in);
+        LinkedList<Task> tasklist = new LinkedList<Task>();
+        int bob = 0;
+        String n = "";
+        String d = "";
+        int p = 0;
+        while(bob == 0){
+            System.out.println("Lets add a task");
+            System.out.println("What is the name of the task?");
+            n = scan.nextLine();
+            System.out.println("What is the task?");
+            d = scan.nextLine();
+            System.out.println("What is the priority");
+            p = scan .nextInt();
+            Task task = new Task(n, d, p);
+            if(tasklist.isEmpty())
+                tasklist.add(task);
+            else if(task.getPriority() == 1)
+                tasklist.addFirst(task);
+            else if(tasklist.getLast().getPriority() < task.getPriority()) {
+                tasklist.addLast(task);
+            }
+            else if(tasklist.getFirst().getPriority() > task.getPriority()) {
+                tasklist.addFirst(task);
+            }
+            else{
+                boolean breakloop = false;
+                while(!breakloop) {
+                    for (int i = 1; i < tasklist.size(); i++) {
+                        if (tasklist.get(i - 1).getPriority() <= task.getPriority() && task.getPriority() <= tasklist.get(i).getPriority()) {
+                            tasklist.add(i, task);
+                            break;
+                        }
+                    }
+                    breakloop = true;
+                }
+            }
+            System.out.println("Task made!");
+            System.out.println("Enter 0 to add another task or press anything else to end");
+            bob = scan.nextInt();
+            scan.nextLine();
+        }
+        System.out.println(tasklist);
+        System.out.println(tasklist.size());
+    }
+}
