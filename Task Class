@@ -4,11 +4,13 @@ public class Task{
     private int priority;
     private String des;
     private String name;
+    private Task partner;
     public Task(String n, String d, int p){
         if(p <= 10 && p > 0)
             priority = p;
         des = d;
         name = n;
+        partner = null;
     }
     public int getPriority(){
         return priority;
@@ -19,4 +21,12 @@ public class Task{
     public String toString(){
         return name + ": " + des + " " + priority + "\n";
     }
+    public void partner(Task task){
+        partner = task;
+    }
+
+    public Task getPartner(){
+        return partner;
+    }
+
 }
