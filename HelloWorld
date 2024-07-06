@@ -5,21 +5,31 @@ import java.util.Scanner;
 
 public class HelloWorld {
     public static void main(String[] args){
+       //Set up scanner and list being used.
         Scanner scan = new Scanner(System.in);
-        LinkedList<Task> tasklist = new LinkedList<Task>();
-        int bob = 0;
+        CustomList tasklist = new CustomList();
+        //Initialize varables used.
+        int looping = 0;
         String n = "";
         String d = "";
         int p = 0;
-        while(bob == 0) {
+        //Start first loop to build tasks
+        while(looping == 0) {
             System.out.println("Lets add a task");
             System.out.println("What is the name of the task?");
-            n = scan.nextLine();
+            if(scan.hasNextLine()) {
+                n = scan.nextLine();
+            }
             System.out.println("What is the task?");
-            d = scan.nextLine();
+            if(scan.hasNextLine()) {
+                d = scan.nextLine();
+            }
             System.out.println("What is the priority");
-            p = scan.nextInt();
+            if(scan.hasNextInt()) {
+                p = scan.nextInt();
+            }
             Task task = new Task(n, d, p);
+            //Runs checks to see where to place the task in the list
             if (tasklist.isEmpty())
                 tasklist.add(task);
             else if (task.getPriority() == 1)
@@ -42,17 +52,28 @@ public class HelloWorld {
             }
             System.out.println("Task made!");
             System.out.println("Enter 0 to add another task");
-            bob = scan.nextInt();
+            //Loop exit checks
+            if(scan.hasNextInt())
+            looping = scan.nextInt();
+            else{
+                looping = 1;
+            }
             scan.nextLine();
         }
         String loop = "";
+        //Loops for search and delete.
+        String key = "";
         while(!loop.equals("esc")){
             System.out.println("Would you like to search or delete something?");
             System.out.println("Enter search or delete or esc");
-            loop = scan.nextLine();
+            if(scan.hasNextLine()) {
+                loop = scan.nextLine();
+            }
             if(loop.equals("search")){
                 System.out.println("Enter the task name");
-                String key = scan.nextLine();
+                if(scan.hasNextLine()) {
+                    key = scan.nextLine();
+                }
                 for(int i = 0; i < tasklist.size(); i++){
                     if(tasklist.get(i).getName().equals(key)){
                         System.out.println(tasklist.get(i));
@@ -61,14 +82,18 @@ public class HelloWorld {
             }
             if(loop.equals("delete")){
                 System.out.println("Enter the task name");
-                String key = scan.nextLine();
+                if(scan.hasNextLine()) {
+                    key = scan.nextLine();
+                }
                 for(int i = 0; i < tasklist.size(); i++){
                     if(tasklist.get(i).getName().equals(key)){
-                        System.out.println("Task " + tasklist.remove(i) + "TERMINATED");
+                        System.out.println("Task TERMINATED");
                     }
                 }
             }
         }
         System.out.println(tasklist);
+        System.out.println(tasklist.size());
     }
+
 }
