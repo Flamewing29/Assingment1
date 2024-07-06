@@ -1,0 +1,113 @@
+package com.example.helloworld;
+
+public class CustomList {
+    private Task first;
+    private Task recent;
+    public CustomList(){
+        first = null;
+        recent = null;
+    }
+
+    public void add(Task task){
+        if(first == null){
+            first = task;
+            recent = task;
+        }
+        else{
+            recent.partner(task);
+            recent = task;
+        }
+    }
+
+    public void add(int index, Task task){
+        Task bin = first;
+        while(index != 1){
+            bin = bin.getPartner();
+            index--;
+        }
+        task.partner(bin.getPartner());
+        bin.partner(task);
+    }
+
+    public Task get(int index){
+        Task bin = first;
+        while(index != 0){
+            bin = bin.getPartner();
+            index--;
+        }
+        return bin;
+    }
+
+    public void remove(int index){
+        Task bin = first;
+        while(index != 1){
+            bin = bin.getPartner();
+            index--;
+        }
+        if(bin.getPartner().getPartner() == null) {
+            bin.partner(null);
+        }
+        else {
+            bin.partner(bin.getPartner().getPartner());
+        }
+    }
+
+    public void addFirst(Task task){
+        task.partner(first);
+        first = task;
+    }
+
+    public Task getFirst(){
+        return first;
+    }
+
+    public Task getLast(){
+        return recent;
+    }
+
+    public void addLast(Task task){
+        recent.partner(task);
+        recent = task;
+    }
+
+    public int size() {
+        int count;
+        if (first == null)
+            return 0;
+        else {
+            Task sizer = first;
+            count = 1;
+            while (sizer.getPartner() != null) {
+                sizer = sizer.getPartner();
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public boolean isEmpty(){
+        if(size() == 0)
+            return true;
+        else{
+            return false;
+        }
+    }
+
+    public String toString(){
+        String output = "";
+        int count;
+        if (first == null)
+            return "";
+        else {
+            Task sizer = first;
+            count = 1;
+            while (sizer.getPartner() != null) {
+                output += sizer.toString();
+                sizer = sizer.getPartner();
+            }
+            output += sizer.toString();
+        }
+        return output;
+    }
+
+}
