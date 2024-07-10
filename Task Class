@@ -12,19 +12,43 @@ public class Task{
         name = n;
         partner = null;
     }
+    /**
+     * Returns the priority level of the task
+     *
+     * @return The priority level
+     */
     public int getPriority(){
         return priority;
     }
+    /**
+     * Returns the name of the task
+     *
+     * @return Name of the task
+     */
     public String getName(){
         return name;
     }
+    /**
+     * The text that is printed if attempting to output
+     *
+     * @return The text
+     */
     public String toString(){
         return name + ": " + des + " " + priority + "\n";
     }
+    /**
+     * Saves another task
+     *
+     * @param Task which you are trying to partner with
+     */
     public void partner(Task task){
         partner = task;
     }
-
+    /**
+     * Returns the list's partner
+     *
+     * @return The partner
+     */
     public Task getPartner(){
         return partner;
     }
