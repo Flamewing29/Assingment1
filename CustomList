@@ -14,13 +14,31 @@ public class CustomList {
      */
 
     public void add(Task task){
-        if(isEmpty()){
+        if (isEmpty()){
             first = task;
             recent = task;
         }
-        else{
+        else if (task.getPriority() == 1){
+            task.partner(first);
+            first = task;
+        }
+        else if (getLast().getPriority() < task.getPriority()) {
             recent.partner(task);
             recent = task;
+        } else if (getFirst().getPriority() > task.getPriority()) {
+            task.partner(first);
+            first = task;
+        } else {
+            boolean breakloop = false;
+            while (!breakloop) {
+                for (int i = 1; i < size(); i++) {
+                    if (get(i - 1).getPriority() <= task.getPriority() && task.getPriority() <= get(i).getPriority()) {
+                        add(i, task);
+                        break;
+                    }
+                }
+                breakloop = true;
+            }
         }
     }
     /**
@@ -78,15 +96,7 @@ public class CustomList {
             bin.partner(bin.getPartner().getPartner());
         }
     }
-    /**
-     * Adds a task to the beginning of the list
-     *
-     * @param Task which you are trying to add
-     */
-    public void addFirst(Task task){
-        task.partner(first);
-        first = task;
-    }
+
     /**
      * Returns the task at beginning of the list
      *
@@ -102,15 +112,6 @@ public class CustomList {
      */
     public Task getLast(){
         return recent;
-    }
-    /**
-     * Adds a task to the end of the list
-     *
-     * @param Task which you are trying to add
-     */
-    public void addLast(Task task){
-        recent.partner(task);
-        recent = task;
     }
     /**
      * Calculates the size of the list
