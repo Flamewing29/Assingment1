@@ -1,9 +1,8 @@
 package com.example.helloworld;
 
-import java.util.LinkedList;
 import java.util.Scanner;
 
-public class HelloWorld {
+public class Tasking {
     public static void main(String[] args){
        //Set up scanner and list being used.
         Scanner scan = new Scanner(System.in);
@@ -30,26 +29,7 @@ public class HelloWorld {
             }
             Task task = new Task(n, d, p);
             //Runs checks to see where to place the task in the list
-            if (tasklist.isEmpty())
-                tasklist.add(task);
-            else if (task.getPriority() == 1)
-                tasklist.addFirst(task);
-            else if (tasklist.getLast().getPriority() < task.getPriority()) {
-                tasklist.addLast(task);
-            } else if (tasklist.getFirst().getPriority() > task.getPriority()) {
-                tasklist.addFirst(task);
-            } else {
-                boolean breakloop = false;
-                while (!breakloop) {
-                    for (int i = 1; i < tasklist.size(); i++) {
-                        if (tasklist.get(i - 1).getPriority() <= task.getPriority() && task.getPriority() <= tasklist.get(i).getPriority()) {
-                            tasklist.add(i, task);
-                            break;
-                        }
-                    }
-                    breakloop = true;
-                }
-            }
+            tasklist.add(task);
             System.out.println("Task made!");
             System.out.println("Enter 0 to add another task");
             //Loop exit checks
