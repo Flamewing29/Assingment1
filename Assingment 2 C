@@ -1,0 +1,89 @@
+import javax.json.*;
+import java.io.FileWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
+// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Scanner scan = new Scanner(System.in);
+        Map<String, Object> config = new HashMap<String, Object>();
+        JsonBuilderFactory factory = Json.createBuilderFactory(config);
+        JsonObject value = (JsonObject) factory.createObjectBuilder()
+                .add("students", factory.createArrayBuilder()
+                        .add(factory.createObjectBuilder()
+                                .add("name", "John Doe")
+                                .add("grades", factory.createObjectBuilder()
+                                        .add("Math", 85)
+                                        .add("Physics", 90)
+                                        .add("Chemistry", 78)))
+                        .add(factory.createObjectBuilder()
+                                .add("name", "Jane Smith")
+                                .add("grades", factory.createObjectBuilder()
+                                        .add("Biology", 88)
+                                        .add("Math", 92)
+                                        .add("English", 81))))
+                .build();
+        int loop = 0;
+        System.out.println("If you want to add more students enter 0");
+        if(scan.hasNextInt())
+            loop = scan.nextInt();
+        while(loop == 0){
+            System.out.println("What is the student's name?");
+            String name;
+            if(scan.hasNextLine()){
+                scan.nextLine();
+                name = scan.nextLine();
+            }
+            else{
+                name = "N/A";
+            }
+            System.out.println("Enter Three Grades");
+            String grade1 = "N/A";
+            int graded1 = 0;
+            String grade2 = "N/A";
+            int graded2 = 0;
+            String grade3 = "N/A";
+            int graded3 = 0;
+            System.out.println("Enter Subject");
+            if(scan.hasNextLine())
+                grade1 = scan.nextLine();
+            System.out.println("Enter Grade");
+            if(scan.hasNextInt())
+                graded1 = scan.nextInt();
+            scan.nextLine();
+            System.out.println("Enter Subject");
+            if(scan.hasNextLine())
+                grade2 = scan.nextLine();
+            System.out.println("Enter Grade");
+            if(scan.hasNextInt())
+                graded2 = scan.nextInt();
+            scan.nextLine();
+            System.out.println("Enter Subject");
+            if(scan.hasNextLine())
+                grade3 = scan.nextLine();
+            System.out.println("Enter Grade");
+            if(scan.hasNextInt())
+                graded3 = scan.nextInt();
+            scan.nextLine();
+            JsonObject personObject = (JsonObject) Json.createObjectBuilder()
+                    .add("name", name)
+                    .add("grades", factory.createObjectBuilder()
+                            .add(grade1, graded1)
+                            .add(grade2, graded2)
+                            .add(grade3, graded3)
+                            .build())
+                    .build();
+
+            value.getJsonArray("students").add(personObject);
+            System.out.println("If you want to add more students enter 0");
+            if(scan.hasNextInt())
+                loop = scan.nextInt();
+        }
+        FileWriter file = new FileWriter("updated_students.json");
+        file.write(value.toString());
+        file.close();
+    }
+}
