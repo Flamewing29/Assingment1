@@ -1,67 +1,63 @@
 import javax.json.*;
+import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.ArrayList;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) throws Exception {
         Map<String, Object> config = new HashMap<String, Object>();
+        InputStream fis = new FileInputStream("person.json");
+        JsonReader reader = Json.createReader(fis);
+        JsonObject object = reader.readObject();
+        ArrayList<Integer> average = new ArrayList<Integer>();
+        for(int i = 0; i < object.getJsonArray("students").size(); i++){
+            JsonObject holder = (JsonObject) object.getJsonArray("students").get(i);
+            holder = holder.getJsonObject("grades");
+            Iterator<String> key = holder.keySet().iterator();
+            average.add(((holder.getInt(key.next())) + (holder.getInt(key.next())) + (holder.getInt(key.next())))/3);
+        }
+        int[] rank = new int[average.size()];
+        ArrayList<Integer> copy = new ArrayList<>();
+        for(int i = 0; i < average.size(); i++){
+            copy.add(average.get(i));
+        }
+        int ranks = 1;
+        for(int i = 0; i < copy.size(); i++){
+            for(int j = 0; j < copy.size(); j++){
+                if(copy.get(i) < copy.get(j))
+                    ranks++;
+            }
+            rank[i] = ranks;
+            ranks = 1;
+        }
         JsonBuilderFactory factory = Json.createBuilderFactory(config);
-        JsonObject value = (JsonObject) factory.createObjectBuilder()
-                .add("students", factory.createArrayBuilder()
-                        .add(factory.createObjectBuilder()
-                                .add("name", "John Doe")
-                                .add("grades", factory.createObjectBuilder()
-                                        .add("Math", 85)
-                                        .add("Physics", 90)
-                                        .add("Chemistry", 78)))
-                        .add(factory.createObjectBuilder()
-                                .add("name", "Jane Smith")
-                                .add("grades", factory.createObjectBuilder()
-                                        .add("Biology", 88)
-                                        .add("Math", 92)
-                                        .add("English", 81))))
-                .build();
-        JsonArray array = value.getJsonArray("students");
-        JsonObject student1 = array.getJsonObject(0);
-        JsonObject student2 = array.getJsonObject(1);
-        JsonObject grade1 = student1.getJsonObject("grades");
-        JsonObject grade2 = student2.getJsonObject("grades");
-        int stu1average = (grade1.getInt("Math")+grade1.getInt("Physics")+grade1.getInt("Chemistry"))/3;
-        int stu2average = (grade2.getInt("Biology")+grade2.getInt("Math")+grade2.getInt("English"))/3;
-        int stu1rank;
-        int stu2rank;
-        if(stu1average > stu2average){
-            stu1rank = 1;
-            stu2rank = 2;
+        JsonObject updated = (JsonObject) factory.createObjectBuilder().build();
+        JsonObject copyed = (JsonObject) factory.createObjectBuilder().build();
+        for(int i = 0; i < object.getJsonArray("students").size(); i++){
+            JsonObject bin = factory.createObjectBuilder(object.getJsonArray("students").getJsonObject(i))
+                    .add("Class Average", average.get(i))
+                    .add("Class Rank", rank[i])
+                    .build();
+            if(i==0) {
+                updated = (JsonObject) factory.createObjectBuilder()
+                        .add("students", factory.createArrayBuilder()
+                                .add(factory.createObjectBuilder(bin)))
+                        .build();
+            }
+            else{
+                updated = (JsonObject) factory.createObjectBuilder()
+                        .add("students", factory.createArrayBuilder(updated.getJsonArray("students"))
+                                .add(factory.createObjectBuilder(copyed))
+                                .add(factory.createObjectBuilder(bin)).build())
+                        .build();
+            }
         }
-        else{
-            stu1rank = 2;
-            stu2rank = 1;
-        }
-        value = (JsonObject) factory.createObjectBuilder()
-                .add("students", factory.createArrayBuilder()
-                        .add(factory.createObjectBuilder()
-                                .add("name", "John Doe")
-                                .add("grades", factory.createObjectBuilder()
-                                        .add("Math", 85)
-                                        .add("Physics", 90)
-                                        .add("Chemistry", 78)
-                                        .add("average_marks", stu1average))
-                                .add("Class Rank", stu1rank))
-                        .add(factory.createObjectBuilder()
-                                .add("name", "Jane Smith")
-                                .add("grades", factory.createObjectBuilder()
-                                        .add("Biology", 88)
-                                        .add("Math", 92)
-                                        .add("English", 81)
-                                        .add("average_marks", stu2average))
-                                .add("Class Rank", stu2rank)))
-                .build();
-        FileWriter file = new FileWriter("updated_students.json");
-        file.write(value.toString());
+       FileWriter file = new FileWriter("updated_students.json");
+        file.write(updated.toString());
         file.close();
     }
 }
