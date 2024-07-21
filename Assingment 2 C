@@ -12,20 +12,7 @@ public class Main {
         Map<String, Object> config = new HashMap<String, Object>();
         JsonBuilderFactory factory = Json.createBuilderFactory(config);
         JsonObject value = (JsonObject) factory.createObjectBuilder()
-                .add("students", factory.createArrayBuilder()
-                        .add(factory.createObjectBuilder()
-                                .add("name", "John Doe")
-                                .add("grades", factory.createObjectBuilder()
-                                        .add("Math", 85)
-                                        .add("Physics", 90)
-                                        .add("Chemistry", 78)))
-                        .add(factory.createObjectBuilder()
-                                .add("name", "Jane Smith")
-                                .add("grades", factory.createObjectBuilder()
-                                        .add("Biology", 88)
-                                        .add("Math", 92)
-                                        .add("English", 81))))
-                .build();
+                .add("students", factory.createArrayBuilder()).build();
         int loop = 0;
         System.out.println("If you want to add more students enter 0");
         if(scan.hasNextInt())
@@ -77,7 +64,9 @@ public class Main {
                             .build())
                     .build();
 
-            value.getJsonArray("students").add(personObject);
+            value = (JsonObject) factory.createObjectBuilder()
+                            .add("students", factory.createArrayBuilder(value.getJsonArray("students"))
+                                    .add(personObject)).build();
             System.out.println("If you want to add more students enter 0");
             if(scan.hasNextInt())
                 loop = scan.nextInt();
