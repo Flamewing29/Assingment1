@@ -1,24 +1,39 @@
 import javax.json.*;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ArrayList;
+import java.io.*;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        Scanner scan = new Scanner(System.in);
         Map<String, Object> config = new HashMap<String, Object>();
-        InputStream fis = new FileInputStream("person.json");
-        JsonReader reader = Json.createReader(fis);
-        JsonObject object = reader.readObject();
+        JsonObject object = null;
+        String fileName = "peron.json";
+        int check = 0;
+        while (check == 0){
+        try {
+            InputStream fis = new FileInputStream(fileName);
+            JsonReader reader = Json.createReader(fis);
+            object = reader.readObject();
+            check = 1;
+        } catch (IOException io) {
+            System.out.println("File does not exist");
+            System.out.println("Please enter correct JSON file");
+            if (scan.hasNextLine())
+                fileName = scan.nextLine();
+        }
+        }
         ArrayList<Integer> average = new ArrayList<Integer>();
         for(int i = 0; i < object.getJsonArray("students").size(); i++){
             JsonObject holder = (JsonObject) object.getJsonArray("students").get(i);
             holder = holder.getJsonObject("grades");
             Iterator<String> key = holder.keySet().iterator();
-            average.add(((holder.getInt(key.next())) + (holder.getInt(key.next())) + (holder.getInt(key.next())))/3);
+            int sum = 0;
+            int counter = 0;
+            while(key.hasNext()) {
+                sum += holder.getInt(key.next());
+                counter++;
+            }
+            average.add((sum/counter));
         }
         int[] rank = new int[average.size()];
         ArrayList<Integer> copy = new ArrayList<>();
@@ -34,29 +49,18 @@ public class Main {
             rank[i] = ranks;
             ranks = 1;
         }
-        JsonBuilderFactory factory = Json.createBuilderFactory(config);
-        JsonObject updated = (JsonObject) factory.createObjectBuilder().build();
-        JsonObject copyed = (JsonObject) factory.createObjectBuilder().build();
-        for(int i = 0; i < object.getJsonArray("students").size(); i++){
-            JsonObject bin = factory.createObjectBuilder(object.getJsonArray("students").getJsonObject(i))
+        JsonBuilderFactory factory = Json.createBuilderFactory(null);
+        JsonArrayBuilder studentsArrayBuilder =factory.createArrayBuilder();
+
+        for (int i = 0; i < object.getJsonArray("students").size(); i++) {
+            JsonObject student = object.getJsonArray("students").getJsonObject(i);
+            JsonObject updatedStudent = factory.createObjectBuilder(student)
                     .add("Class Average", average.get(i))
-                    .add("Class Rank", rank[i])
-                    .build();
-            if(i==0) {
-                updated = (JsonObject) factory.createObjectBuilder()
-                        .add("students", factory.createArrayBuilder()
-                                .add(factory.createObjectBuilder(bin)))
-                        .build();
-            }
-            else{
-                updated = (JsonObject) factory.createObjectBuilder()
-                        .add("students", factory.createArrayBuilder(updated.getJsonArray("students"))
-                                .add(factory.createObjectBuilder(copyed))
-                                .add(factory.createObjectBuilder(bin)).build())
-                        .build();
-            }
+                    .add("Class Rank", rank[i]) .build();
+            studentsArrayBuilder.add(updatedStudent);
         }
-       FileWriter file = new FileWriter("updated_students.json");
+        JsonObject updated = factory.createObjectBuilder() .add("students", studentsArrayBuilder) .build();
+        FileWriter file = new FileWriter("updated_students.json");
         file.write(updated.toString());
         file.close();
     }
