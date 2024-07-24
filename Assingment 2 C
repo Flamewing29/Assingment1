@@ -1,8 +1,7 @@
 import javax.json.*;
 import java.io.FileWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.io.StringWriter;
+import java.util.*;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -65,14 +64,55 @@ public class Main {
                     .build();
 
             value = (JsonObject) factory.createObjectBuilder()
-                            .add("students", factory.createArrayBuilder(value.getJsonArray("students"))
-                                    .add(personObject)).build();
+                    .add("students", factory.createArrayBuilder(value.getJsonArray("students"))
+                            .add(personObject)).build();
             System.out.println("If you want to add more students enter 0");
             if(scan.hasNextInt())
                 loop = scan.nextInt();
         }
+        ArrayList<Integer> average = new ArrayList<Integer>();
+        for(int i = 0; i < value.getJsonArray("students").size(); i++){
+            JsonObject holder = (JsonObject) value.getJsonArray("students").get(i);
+            holder = holder.getJsonObject("grades");
+            Iterator<String> key = holder.keySet().iterator();
+            int sum = 0;
+            int counter = 0;
+            while(key.hasNext()) {
+                sum += holder.getInt(key.next());
+                counter++;
+            }
+            average.add((sum/counter));
+        }
+        int[] rank = new int[average.size()];
+        ArrayList<Integer> copy = new ArrayList<>();
+        for(int i = 0; i < average.size(); i++){
+            copy.add(average.get(i));
+        }
+        int ranks = 1;
+        for(int i = 0; i < copy.size(); i++){
+            for(int j = 0; j < copy.size(); j++){
+                if(copy.get(i) < copy.get(j))
+                    ranks++;
+            }
+            rank[i] = ranks;
+            ranks = 1;
+        }
+        JsonArrayBuilder studentsArrayBuilder =factory.createArrayBuilder();
+
+        for (int i = 0; i < value.getJsonArray("students").size(); i++) {
+            JsonObject student = value.getJsonArray("students").getJsonObject(i);
+            JsonObject updatedStudent = factory.createObjectBuilder(student)
+                    .add("Class Average", average.get(i))
+                    .add("Class Rank", rank[i]) .build();
+            studentsArrayBuilder.add(updatedStudent);
+        }
+        JsonObject updated = factory.createObjectBuilder() .add("students", studentsArrayBuilder) .build();
+        StringWriter sw = new StringWriter();
+        JsonWriter jsonWriter = Json.createWriterFactory(Collections.singletonMap("javax.json.stream.JsonGenerator.prettyPrinting", true)).createWriter(sw);
+        jsonWriter.writeObject(updated);
+        jsonWriter.close();
         FileWriter file = new FileWriter("updated_students.json");
-        file.write(value.toString());
+        file.write(sw.toString());
         file.close();
     }
 }
