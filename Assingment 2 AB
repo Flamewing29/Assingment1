@@ -60,8 +60,12 @@ public class Main {
             studentsArrayBuilder.add(updatedStudent);
         }
         JsonObject updated = factory.createObjectBuilder() .add("students", studentsArrayBuilder) .build();
+        StringWriter sw = new StringWriter();
+        JsonWriter jsonWriter = Json.createWriterFactory(Collections.singletonMap("javax.json.stream.JsonGenerator.prettyPrinting", true)).createWriter(sw);
+        jsonWriter.writeObject(updated);
+        jsonWriter.close();
         FileWriter file = new FileWriter("updated_students.json");
-        file.write(updated.toString());
+        file.write(sw.toString());
         file.close();
     }
 }
