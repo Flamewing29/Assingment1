@@ -1,0 +1,99 @@
+import javax.json.*;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Scanner scan = new Scanner(System.in);
+        FileReader reader = new FileReader("file.json");
+        JsonReader jsonReader = Json.createReader(reader);
+        JsonObject jsonObject = jsonReader.readObject();
+        jsonReader.close();
+        JsonArray questions = jsonObject.getJsonArray("questions");
+        ArrayList<String> tags = new ArrayList<String>();
+        //Gathers tags based off user input
+        for (int i = 0; i < questions.size(); i++) {
+            JsonObject q = questions.getJsonObject(i);
+            JsonArray options = q.getJsonArray("options");
+            System.out.println(remover(q.get("question")));
+            System.out.println("Your Options:");
+            for (int j = 0; j < options.size(); j++) {
+                System.out.println(remover(options.getJsonObject(j).get("text")));
+            }
+            boolean possible = false;
+            while (!possible) {
+                if (remover(q.get("type")).equals("multiple_choice")) {
+                    System.out.println("You may select multiple choices by typing in a value and entering");
+                    System.out.println("If you wish to enter no more values enter esc");
+                    while (scan.hasNext()) {
+                        String enter = scan.nextLine();
+                        possible = false;
+                        for (int j = 0; j < options.size(); j++) {
+                            if (remover(options.getJsonObject(j).get("text")).equals(enter)) {
+                                tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
+                                possible = true;
+                            }
+                        }
+                        if (enter.equals("esc")) {
+                            possible = true;
+                            break;
+                        } else if (!possible) {
+                            System.out.println("Please enter an actual value.");
+                        }
+                    }
+                } else {
+                    while (!possible) {
+                        if (scan.hasNextLine()) {
+                            String enter = scan.nextLine();
+                            possible = false;
+                            for (int j = 0; j < options.size(); j++) {
+                                if (remover(options.getJsonObject(j).get("text")).equals(enter)) {
+                                    tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
+                                    possible = true;
+                                }
+                            }
+                        }
+                        if (!possible) {
+                            System.out.println("Please enter an actual value.");
+                        }
+                    }
+                }
+                if (!possible)
+                    System.out.println("Please enter an actual option");
+            }
+        }
+        //Finds classes
+        JsonArray classes = jsonObject.getJsonArray("classes");
+        double counter = 0;
+        double threshold;
+        System.out.println("Theses are the classes that work for you!");
+        for (int i = 0; i < classes.size(); i++) {
+            threshold = classes.getJsonObject(i).getJsonObject("criteria").getJsonArray("tags").size();
+            for (int j = 0; j < threshold; j++) {
+                for (int z = 0; z < tags.size(); z++) {
+                    if (classes.getJsonObject(i).getJsonObject("criteria").getJsonArray("tags").getString(j).equals(tags.get(z))) {
+                        counter++;
+                    }
+                }
+            }
+            JsonNumber num = jsonObject.getJsonObject("output").getJsonNumber("match_threshold");
+            double output = num.doubleValue();
+            if(counter/threshold >= output)
+                System.out.println(remover(classes.getJsonObject(i).get("name")));
+            counter = 0;
+        }
+        /*
+         * Removes the quotations surrounding JsonValues pulled from the document and converts from JsonValue to String.
+         *
+         * @param JsonValue the Value to modify
+         * @throws IllegalArgumentException if the JsonValue is null
+         */
+    }
+
+    static String remover(JsonValue j) {
+        String s = j.toString();
+        s = s.substring(1, s.length() - 1);
+        return s;
+    }
+}
