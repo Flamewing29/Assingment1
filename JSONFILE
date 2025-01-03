@@ -1,0 +1,174 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "What subjects do you like?",
+      "type": "multiple_choice",
+      "options": [
+        {
+          "id": "o1",
+          "text": "Mathematics",
+          "tags": [
+            "math"
+          ]
+        },
+        {
+          "id": "o2",
+          "text": "Science",
+          "tags": [
+            "science"
+          ]
+        },
+        {
+          "id": "o3",
+          "text": "Literature",
+          "tags": [
+            "literature"
+          ]
+        },
+        {
+          "id": "o4",
+          "text": "Art",
+          "tags": [
+            "art"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q2",
+      "question": "Do you prefer theoretical or practical subjects?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "o5",
+          "text": "Theoretical",
+          "tags": [
+            "theory"
+          ]
+        },
+        {
+          "id": "o6",
+          "text": "Practical",
+          "tags": [
+            "practical"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q3",
+      "question": "What time of day do you prefer for classes?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "o7",
+          "text": "Morning",
+          "tags": [
+            "morning"
+          ]
+        },
+        {
+          "id": "o8",
+          "text": "Noon",
+          "tags": [
+            "noon"
+          ]
+        },
+        {
+          "id": "o9",
+          "text": "Evening",
+          "tags": [
+            "evening"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q4",
+      "question": "Which grade are you in?",
+      "type": "single_choice",
+      "options": [
+        {
+          "id": "o10",
+          "text": "Grade 1",
+          "tags": [
+            "grade1"
+          ]
+        },
+        {
+          "id": "o11",
+          "text": "Grade 2",
+          "tags": [
+            "grade2"
+          ]
+        },
+        {
+          "id": "o12",
+          "text": "Grade 3",
+          "tags": [
+            "grade3"
+          ]
+        },
+        {
+          "id": "o13",
+          "text": "Grade 4",
+          "tags": [
+            "grade4"
+          ]
+        },
+        {
+          "id": "o14",
+          "text": "Grade 5",
+          "tags": [
+            "grade5"
+          ]
+        }
+      ]
+    }
+  ],
+  "classes": [
+    {
+      "id": "class1",
+      "name": "Mathematics Class",
+      "criteria": {
+        "tags": [
+          "math",
+          "theory",
+          "morning",
+          "grade5"
+        ],
+        "match_type": "all"
+      }
+    },
+    {
+      "id": "class2",
+      "name": "Science Lab",
+      "criteria": {
+        "tags": [
+          "science",
+          "practical",
+          "noon",
+          "grade4"
+        ],
+        "match_type": "all"
+      }
+    },
+    {
+      "id": "class3",
+      "name": "Evening Literature Session",
+      "criteria": {
+        "tags": [
+          "literature",
+          "evening",
+          "grade3"
+        ],
+        "match_type": "all"
+      }
+    }
+  ],
+  "output": {
+    "match_threshold": 0.7,
+    "match_similarity": 0.5
+  }
+}
