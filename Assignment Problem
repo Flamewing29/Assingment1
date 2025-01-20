@@ -1,0 +1,112 @@
+
+import org.apache.commons.text.similarity.CosineSimilarity;
+
+import javax.json.*;
+import java.io.FileReader;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        CosineSimilarity similarity = new CosineSimilarity();
+        Scanner scan = new Scanner(System.in);
+        FileReader reader = new FileReader("file.json");
+        JsonReader jsonReader = Json.createReader(reader);
+        JsonObject jsonObject = jsonReader.readObject();
+        jsonReader.close();
+        JsonArray questions = jsonObject.getJsonArray("questions");
+        ArrayList<String> tags = new ArrayList<String>();
+        JsonNumber num = jsonObject.getJsonObject("output").getJsonNumber("match_similarity");
+        double match = num.doubleValue();
+        //Gathers tags based off user input
+        for (int i = 0; i < questions.size(); i++) {
+            JsonObject q = questions.getJsonObject(i);
+            JsonArray options = q.getJsonArray("options");
+            System.out.println(q.getString("question"));
+            System.out.println("Your Options:");
+            for (int j = 0; j < options.size(); j++) {
+                System.out.println(options.getJsonObject(j).getString("text"));
+            }
+            boolean possible = false;
+            while (!possible) {
+                if (q.getString("type").equals("multiple_choice")) {
+                    System.out.println("You may select multiple choices by typing in a value and entering");
+                    System.out.println("If you wish to enter no more values enter esc");
+                    while (scan.hasNext()) {
+                        String enter = scan.nextLine();
+                        for (int j = 0; j < options.size(); j++) {
+                            Map<CharSequence, Integer> vector2 = new HashMap<>();
+                            vector2.put(enter, 2);
+                            Map<CharSequence, Integer> vector1 = new HashMap<>();
+                            vector1.put(options.getJsonObject(j).getString("text"), 2);
+                            double bub = similarity.cosineSimilarity(vector1, vector2);
+                            System.out.println(bub);
+                            System.out.println(vector2);
+                            if (similarity.cosineSimilarity(vector2, vector2) > match){
+                                tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
+                                possible = true;
+                            }
+                        }
+                        if (enter.equals("esc")) {
+                            possible = true;
+                            break;
+                        }
+                        else if (!possible) {
+                            System.out.println("Please enter an actual value.");
+                        }
+                    }
+                } else {
+                    while (!possible) {
+                        if (scan.hasNextLine()) {
+                            String enter = scan.nextLine();
+                            possible = false;
+                            for (int j = 0; j < options.size(); j++) {
+                                Map<CharSequence, Integer> vector1 = new HashMap<>();
+                                vector1.put(enter, 2);
+                                Map<CharSequence, Integer> vector2 = new HashMap<>();
+                                vector2.put(options.getJsonObject(j).getString("text"), 1);
+                                if (similarity.cosineSimilarity(vector1, vector2) > match){
+                                    tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
+                                    possible = true;
+                                }
+                            }
+                        }
+                        if (!possible) {
+                            System.out.println("Please enter an actual value.");
+                        }
+                    }
+                }
+                if (!possible)
+                    System.out.println("Please enter an actual option");
+            }
+        }
+        System.out.println(tags);
+        //Finds classes
+        ArrayList<String> found = new ArrayList<>();
+        JsonArray classes = jsonObject.getJsonArray("classes");
+        double counter = 0;
+        double threshold;
+        System.out.println("Theses are the classes that work for you!");
+        for (int i = 0; i < classes.size(); i++) {
+            threshold = classes.getJsonObject(i).getJsonObject("criteria").getJsonArray("tags").size();
+            for (int j = 0; j < threshold; j++) {
+                for (int z = 0; z < tags.size(); z++) {
+                    if (classes.getJsonObject(i).getJsonObject("criteria").getJsonArray("tags").getString(j).equals(tags.get(z))) {
+                        counter++;
+                    }
+                }
+            }
+            JsonNumber number = jsonObject.getJsonObject("output").getJsonNumber("match_threshold");
+            double output = number.doubleValue();
+            if(counter/threshold >= output)
+                found.add(classes.getJsonObject(i).getString("name"));
+            counter = 0;
+        }
+        if(found.size() == 0)
+            System.out.println("No classes found");
+        else{
+            for(String i: found){
+                System.out.println(i);
+            }
+        }
+    }
+}
