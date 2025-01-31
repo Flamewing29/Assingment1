@@ -1,14 +1,13 @@
 
-import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.commons.text.similarity.CosineSimilarity;
 
 import javax.json.*;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        LevenshteinDistance similarity = new LevenshteinDistance();
+        CosineSimilarity similarity = new CosineSimilarity();
         Scanner scan = new Scanner(System.in);
         FileReader reader = new FileReader("file.json");
         JsonReader jsonReader = Json.createReader(reader);
@@ -34,9 +33,9 @@ public class Main {
                     System.out.println("If you wish to enter no more values enter esc");
                     while (scan.hasNext()) {
                         String enter = scan.nextLine();
-                        possible = false;
                         for (int j = 0; j < options.size(); j++) {
-                            if ((double) similarity.apply(options.getJsonObject(j).getString("text"), enter) /options.getJsonObject(j).getString("text").length() <= match){
+                            System.out.println(similarity.cosineSimilarity(buildVectorFromString(enter), buildVectorFromString(options.getJsonObject(j).getString("text"))));
+                            if (similarity.cosineSimilarity(buildVectorFromString(enter), buildVectorFromString(options.getJsonObject(j).getString("text"))) > match){
                                 tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
                                 possible = true;
                             }
@@ -44,7 +43,8 @@ public class Main {
                         if (enter.equals("esc")) {
                             possible = true;
                             break;
-                        } else if (!possible) {
+                        }
+                        else if (!possible) {
                             System.out.println("Please enter an actual value.");
                         }
                     }
@@ -54,7 +54,11 @@ public class Main {
                             String enter = scan.nextLine();
                             possible = false;
                             for (int j = 0; j < options.size(); j++) {
-                                if ((double) similarity.apply(options.getJsonObject(j).getString("text"), enter) /options.getJsonObject(j).getString("text").length() <= match) {
+                                Map<CharSequence, Integer> vector1 = new HashMap<>();
+                                vector1.put(enter, 2);
+                                Map<CharSequence, Integer> vector2 = new HashMap<>();
+                                vector2.put(options.getJsonObject(j).getString("text"), 1);
+                                if (similarity.cosineSimilarity(vector1, vector2) > match){
                                     tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
                                     possible = true;
                                 }
@@ -98,5 +102,12 @@ public class Main {
                 System.out.println(i);
             }
         }
+    }
+    private static Map<CharSequence, Integer> buildVectorFromString(String text) {
+        Map<CharSequence, Integer> vector = new HashMap<>();
+        for (String word : text.toLowerCase().split(" ")) {
+            vector.put(word, vector.getOrDefault(word, 0) + 1);
+        }
+        return vector;
     }
 }
