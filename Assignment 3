@@ -34,7 +34,6 @@ public class Main {
                     while (scan.hasNext()) {
                         String enter = scan.nextLine();
                         for (int j = 0; j < options.size(); j++) {
-                            System.out.println(similarity.cosineSimilarity(buildVectorFromString(enter), buildVectorFromString(options.getJsonObject(j).getString("text"))));
                             if (similarity.cosineSimilarity(buildVectorFromString(enter), buildVectorFromString(options.getJsonObject(j).getString("text"))) > match){
                                 tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
                                 possible = true;
@@ -54,11 +53,7 @@ public class Main {
                             String enter = scan.nextLine();
                             possible = false;
                             for (int j = 0; j < options.size(); j++) {
-                                Map<CharSequence, Integer> vector1 = new HashMap<>();
-                                vector1.put(enter, 2);
-                                Map<CharSequence, Integer> vector2 = new HashMap<>();
-                                vector2.put(options.getJsonObject(j).getString("text"), 1);
-                                if (similarity.cosineSimilarity(vector1, vector2) > match){
+                                if (similarity.cosineSimilarity(buildVectorFromString(enter), buildVectorFromString(options.getJsonObject(j).getString("text"))) > match){
                                     tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
                                     possible = true;
                                 }
@@ -105,9 +100,12 @@ public class Main {
     }
     private static Map<CharSequence, Integer> buildVectorFromString(String text) {
         Map<CharSequence, Integer> vector = new HashMap<>();
-        for (String word : text.toLowerCase().split(" ")) {
-            vector.put(word, vector.getOrDefault(word, 0) + 1);
+        text = text.toLowerCase().replaceAll("[^a-z]", "");
+        for (int i = 0; i < text.length() - 1; i++) {
+            String bigram = text.substring(i, i + 2);
+            vector.put(bigram, vector.getOrDefault(bigram, 0) + 1);
         }
+
         return vector;
     }
 }
