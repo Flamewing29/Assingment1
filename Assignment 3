@@ -70,33 +70,7 @@ public class Main {
         }
         System.out.println(tags);
         //Finds classes
-        ArrayList<String> found = new ArrayList<>();
-        JsonArray classes = jsonObject.getJsonArray("classes");
-        double counter = 0;
-        double threshold;
-        System.out.println("Theses are the classes that work for you!");
-        for (int i = 0; i < classes.size(); i++) {
-            threshold = classes.getJsonObject(i).getJsonObject("criteria").getJsonArray("tags").size();
-            for (int j = 0; j < threshold; j++) {
-                for (int z = 0; z < tags.size(); z++) {
-                    if (classes.getJsonObject(i).getJsonObject("criteria").getJsonArray("tags").getString(j).equals(tags.get(z))) {
-                        counter++;
-                    }
-                }
-            }
-            JsonNumber number = jsonObject.getJsonObject("output").getJsonNumber("match_threshold");
-            double output = number.doubleValue();
-            if(counter/threshold >= output)
-                found.add(classes.getJsonObject(i).getString("name"));
-            counter = 0;
-        }
-        if(found.size() == 0)
-            System.out.println("No classes found");
-        else{
-            for(String i: found){
-                System.out.println(i);
-            }
-        }
+        matchClasses(jsonObject, tags);
     }
     private static Map<CharSequence, Integer> buildVectorFromString(String text) {
         Map<CharSequence, Integer> vector = new HashMap<>();
@@ -108,4 +82,32 @@ public class Main {
 
         return vector;
     }
+
+    private static void matchClasses(JsonObject jsonObject, List<String> tags) {
+        JsonArray classes = jsonObject.getJsonArray("classes");
+        double matchThreshold = jsonObject.getJsonObject("output").getJsonNumber("match_threshold").doubleValue();
+        List<String> matchedClasses = new ArrayList<>();
+
+        for (JsonObject classObj : classes.getValuesAs(JsonObject.class)) {
+            JsonArray requiredTags = classObj.getJsonObject("criteria").getJsonArray("tags");
+            int matchedTags = 0;
+
+            for (int j = 0; j < requiredTags.size(); j++) {
+                if (tags.contains(requiredTags.getString(j))) {
+                    matchedTags++;
+                }
+            }
+
+            double matchRatio = (double) matchedTags / requiredTags.size();
+            if (matchRatio >= matchThreshold) {
+                matchedClasses.add(classObj.getString("name"));
+            }
+        }
+
+        if (matchedClasses.isEmpty()) {
+            System.out.println("No matching classes found.");
+        } else {
+            System.out.println("Matching classes: " + matchedClasses);
+        }
+        }
 }
