@@ -1,0 +1,136 @@
+import org.deeplearning4j.models.word2vec.Word2Vec;
+import org.deeplearning4j.text.sentenceiterator.BasicLineIterator;
+import org.deeplearning4j.text.sentenceiterator.SentenceIterator;
+import org.deeplearning4j.text.tokenization.tokenizer.preprocessor.CommonPreprocessor;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.DefaultTokenizerFactory;
+import org.deeplearning4j.text.tokenization.tokenizerfactory.TokenizerFactory;
+import org.nd4j.common.io.ClassPathResource;
+
+import javax.json.*;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        Scanner scan = new Scanner(System.in);
+        String fileName = scan.nextLine();
+        String filePath = new ClassPathResource("files.json").getFile().getAbsolutePath();
+// Strip white space before and after for each line
+        SentenceIterator iter = new BasicLineIterator(filePath);
+        // Split on white spaces in the line to get words
+        TokenizerFactory t = new DefaultTokenizerFactory();
+        t.setTokenPreProcessor(new CommonPreprocessor());
+        Word2Vec vec = new Word2Vec.Builder()
+                .minWordFrequency(5)
+                .layerSize(100)
+                .seed(42)
+                .windowSize(5)
+                .iterate(iter)
+                .tokenizerFactory(t)
+                .build();
+
+        vec.fit();
+        FileReader reader = new FileReader("file.json");
+        JsonReader jsonReader = Json.createReader(reader);
+        JsonObject jsonObject = jsonReader.readObject();
+        jsonReader.close();
+        JsonArray questions = jsonObject.getJsonArray("questions");
+        ArrayList<String> tags = new ArrayList<String>();
+        JsonNumber num = jsonObject.getJsonObject("output").getJsonNumber("match_similarity");
+        double match = num.doubleValue();
+        //Gathers tags based off user input
+        for (int i = 0; i < questions.size(); i++) {
+            JsonObject q = questions.getJsonObject(i);
+            JsonArray options = q.getJsonArray("options");
+            System.out.println(q.getString("question"));
+            System.out.println("Your Options:");
+            for (int j = 0; j < options.size(); j++) {
+                System.out.println(options.getJsonObject(j).getString("text"));
+            }
+            boolean possible = false;
+            while (!possible) {
+                if (q.getString("type").equals("multiple_choice")) {
+                    System.out.println("You may select multiple choices by typing in a value and entering");
+                    System.out.println("If you wish to enter no more values enter esc");
+                    while (scan.hasNext()) {
+                        String enter = scan.nextLine();
+                        for (int j = 0; j < options.size(); j++) {
+                            if (vec.hasWord(enter)){
+                                tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
+                                possible = true;
+                            }
+                        }
+                        if (enter.equals("esc")) {
+                            possible = true;
+                            break;
+                        }
+                        else if (!possible) {
+                            System.out.println("Please enter an actual value.");
+                        }
+                    }
+                } else {
+                    while (!possible) {
+                        if (scan.hasNextLine()) {
+                            String enter = scan.nextLine();
+                            possible = false;
+                            for (int j = 0; j < options.size(); j++) {
+                                if (vec.hasWord(enter)){
+                                    tags.add(options.getJsonObject(j).getJsonArray("tags").getString(0));
+                                    possible = true;
+                                }
+                            }
+                        }
+                        if (!possible) {
+                            System.out.println("Please enter an actual value.");
+                        }
+                    }
+                }
+                if (!possible)
+                    System.out.println("Please enter an actual option");
+            }
+        }
+        System.out.println(tags);
+        //Finds classes
+        matchClasses(jsonObject, tags);
+    }
+    private static Map<CharSequence, Integer> buildVectorFromString(String text) {
+        Map<CharSequence, Integer> vector = new HashMap<>();
+        text = text.toLowerCase().replaceAll("[^a-z]", "");
+        for (int i = 0; i < text.length() - 1; i++) {
+            String bigram = text.substring(i, i + 2);
+            vector.put(bigram, vector.getOrDefault(bigram, 0) + 1);
+        }
+
+        return vector;
+    }
+    private static void matchClasses(JsonObject jsonObject, List<String> tags) {
+        JsonArray classes = jsonObject.getJsonArray("classes");
+        double matchThreshold = jsonObject.getJsonObject("output").getJsonNumber("match_threshold").doubleValue();
+        List<String> matchedClasses = new ArrayList<>();
+
+        for (JsonObject classObj : classes.getValuesAs(JsonObject.class)) {
+            JsonArray requiredTags = classObj.getJsonObject("criteria").getJsonArray("tags");
+            int matchedTags = 0;
+
+            for (int j = 0; j < requiredTags.size(); j++) {
+                if (tags.contains(requiredTags.getString(j))) {
+                    matchedTags++;
+                }
+            }
+
+            double matchRatio = (double) matchedTags / requiredTags.size();
+            if (matchRatio >= matchThreshold) {
+                matchedClasses.add(classObj.getString("name"));
+            }
+        }
+
+        if (matchedClasses.isEmpty()) {
+            System.out.println("No matching classes found.");
+        } else {
+            System.out.println("Matching classes: " + matchedClasses);
+        }
+    }
+    }
+
