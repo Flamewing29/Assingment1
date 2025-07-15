@@ -1,0 +1,94 @@
+import json
+from transformers import BertTokenizer, BertModel
+import torch
+from torch.nn.functional import cosine_similarity
+
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = BertModel.from_pretrained('bert-base-uncased')
+model.eval()
+
+
+def get_word_embedding(word, context_template="This is a {}."):
+    sentence = context_template.format(word)
+    inputs = tokenizer(sentence, return_tensors='pt')
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # Get the token index of the word
+    tokenized_input = tokenizer.tokenize(sentence)
+    word_tokens = tokenizer.tokenize(word)
+
+    # Find the starting index of the word tokens in the tokenized input
+    for i in range(len(tokenized_input)):
+        if tokenized_input[i:i + len(word_tokens)] == word_tokens:
+            word_start = i
+            break
+
+    # Get the hidden states (last layer)
+    embeddings = outputs.last_hidden_state.squeeze(0)
+
+    # Average the embeddings of subword tokens if needed
+    word_embedding = embeddings[word_start:word_start + len(word_tokens)].mean(dim=0)
+    return word_embedding
+
+def compare(string1, string2):
+    embedding1 = get_word_embedding(string1)
+    embedding2 = get_word_embedding(string2)
+    similarity = cosine_similarity(embedding1.unsqueeze(0), embedding2.unsqueeze(0))
+    print(similarity)
+    return similarity
+
+file = open("file.json", "r")
+file = json.load(file)
+json = file["questions"]
+
+array = []
+output = file["output"]
+threshold = output["match_similarity"]
+def add(repeating):
+    loop = False
+    check = False
+    while not loop:
+        answer = input("")
+        check = False
+        if answer == "esc":
+            break
+        for z in json["options"]:
+            z = z["tags"]
+            if compare(answer.lower(), z[0].lower()) > threshold:
+                array.extend([z[0]])
+                check = True
+                if not repeating:
+                    loop = True
+        if not check:
+            print("Please enter a valid answer.")
+for i in json:
+    json = i
+    print(json["question"])
+    print("Your options:")
+    for y in json["options"]:
+        print(y["text"])
+    if json["type"] == "multiple_choice":
+        print("You may select multiple choices by typing in a value and entering")
+        print("If you wish to enter no more values enter esc")
+        add(True)
+    else:
+        add(False)
+match = 0
+threshold = output["match_threshold"]
+file = file["classes"]
+classes = []
+for i in file:
+    name = i["name"]
+    i = i["criteria"]
+    for x in i["tags"]:
+        for y in array:
+            if x == y:
+                match += 1
+    if match/len(i["tags"]) > threshold:
+        classes.extend([name])
+    match = 0
+if len(classes) == 0:
+    print("No matches found")
+else:
+    print("The classes found for you are " + ", ".join(classes))
